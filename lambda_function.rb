@@ -1,9 +1,13 @@
 require 'date'
+require 'net/http'
+require 'uri'
 
-def lambda_handler(event:, context:)
+def lambda_handler(_event:, _context:)
   day = Date.today.wday
   msg = message(day)
-  { statusCode: 200, body: JSON.generate('Hello from Lambda!') }
+  res = post_message_to_line(msg)
+
+  { statusCode: res.code, body: res.body }
 end
 
 def message(day)
@@ -17,4 +21,15 @@ def message(day)
   else
     '今日はゴミの収集日ではありません'
   end
+end
+
+def post_message_to_line(msg)
+  uri          = URI.parse('https://api.line.me/v2/bot/message/broadcast')
+  http         = Net::HTTP.new(uri.host, uri.port)
+  http.use_ssl = uri.scheme === 'https'
+
+  params  = { 'messages': [{ 'type': 'text', 'text': "#{msg}" }] }
+  headers = { 'Content-Type': 'application/json', 'Authorization': "Bearer {#{ENV['LINE_CHANNEL_ACCESS_TOKEN']}}" }
+
+  http.post(uri.path, params.to_json, headers)
 end
