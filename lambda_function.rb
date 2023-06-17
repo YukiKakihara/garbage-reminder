@@ -2,7 +2,7 @@ require 'date'
 require 'net/http'
 require 'uri'
 
-def lambda_handler(event:, context:)
+def lambda_handler(_event:, _context:)
   day = Date.today.wday
   msg = message(day)
   res = post_message_to_line(msg)
@@ -12,11 +12,11 @@ end
 
 def message(day)
   case day
-  when 1, 5
+  when 2, 6
     '今日は「燃えるゴミ」の収集日です'
-  when 2
+  when 3
     '今日は「缶・ビン・ペットボトル」の収集日です'
-  when 6
+  when 5
     '今日は「プラスチックごみ」の収集日です'
   else
     '今日はゴミの収集日ではありません'
@@ -26,9 +26,9 @@ end
 def post_message_to_line(msg)
   uri          = URI.parse('https://api.line.me/v2/bot/message/broadcast')
   http         = Net::HTTP.new(uri.host, uri.port)
-  http.use_ssl = uri.scheme === 'https'
+  http.use_ssl = uri.scheme == 'https'
 
-  params  = { 'messages': [{ 'type': 'text', 'text': "#{msg}" }] }
+  params  = { 'messages': [{ 'type': 'text', 'text': msg.to_s }] }
   headers = { 'Content-Type': 'application/json', 'Authorization': "Bearer {#{ENV['LINE_CHANNEL_ACCESS_TOKEN']}}" }
 
   http.post(uri.path, params.to_json, headers)
