@@ -2,7 +2,7 @@ require 'date'
 require 'net/http'
 require 'uri'
 
-def lambda_handler(_event:, _context:)
+def lambda_handler(_args)
   day = Date.today.wday
   msg = message(day)
   res = post_message_to_line(msg)
